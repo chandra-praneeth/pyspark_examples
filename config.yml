@@ -1,0 +1,22 @@
+creds:
+  connector: s3
+
+columns:
+  - location_key
+  - school_closing
+  - cancel_public_events
+  - restrictions_on_gatherings
+  - public_transport_closing
+  - international_travel_controls
+aggregations:
+  - total_income_support
+    - sum(income_support)
+  - total_international_support
+    - sum(international_support)
+  - total_fiscal_measures
+    - sum(fiscal_measures)
+granularity:
+  - daily
+no_of_dimensions: 3
+
+
