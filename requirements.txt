@@ -1,0 +1,3 @@
+pyspark[sql]
+urllib3
+pyyaml

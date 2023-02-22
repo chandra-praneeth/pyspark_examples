@@ -1,6 +1,8 @@
 import yaml
 from pathlib import Path
 
+# Todo:: Add class mapping to yaml file
+
 
 def singleton(cls):
     instance = [None]
@@ -24,9 +26,3 @@ class YamlReader:
 
     def get_conf(self):
         return self.config
-
-
-yml_reader = YamlReader(file_path='config.yml')
-yml_reader_1 = YamlReader(file_path='config.yml')
-config = yml_reader.get_conf()
-print("config:", config)
