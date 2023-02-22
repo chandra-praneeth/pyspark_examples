@@ -1,9 +1,10 @@
 import yaml
 from pathlib import Path
 
-# Todo:: Add class mapping to yaml file
+# Todo:: Add data class to yaml file for better error handling
 
 
+# https://riptutorial.com/python/example/10954/create-singleton-class-with-a-decorator
 def singleton(cls):
     instance = [None]
 

@@ -8,6 +8,8 @@ columns:
   - restrictions_on_gatherings
   - public_transport_closing
   - international_travel_controls
+date_column:
+  - date
 aggregations:
   - total_income_support
     - sum(income_support)
