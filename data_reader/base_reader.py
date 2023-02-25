@@ -7,4 +7,14 @@
 # create a virtual env inside the directory
 # Install libraries needed
 # update readme document as we go
-#
+# Questions:
+# 1. URL is publicly accessible, what is the need for s3/bigquery connector?
+# 2. Any sample Bigquery table/s3 path which is publicly available for testing?
+
+class BaseReader:
+
+    def connect(self):
+        pass
+
+    def read(self):
+        pass
