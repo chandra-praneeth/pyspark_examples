@@ -1,4 +1,6 @@
 from pyspark.sql import SparkSession
+from data_reader.reader_factory import get_file_reader
+from data_reader.base_reader import BaseReader
 from yaml_reader import YamlReader
 
 
@@ -11,14 +13,17 @@ def get_config(file_path: str):
     return yml_reader.get_conf()
 
 
-def read_data(spark_session):
-    return spark_session.read.csv("oxford-government-response.csv", header=True)
+def read_data(config: dict, spark_session: SparkSession):
+    file_reader: BaseReader = get_file_reader(config=config, spark_session=spark_session)
+    return file_reader.read()
+    # return spark_session.read.csv("oxford-government-response.csv", header=True)
+
 
 def prepare_select_clause():
     pass
 
 
-def run_daily_query():
+def run_daily_query(spark: SparkSession):
     result_df_daily = spark.sql(
         """
         select 
@@ -38,7 +43,7 @@ def run_daily_query():
     result_df_daily.printSchema()
 
 
-def run_weekly_query():
+def run_weekly_query(spark: SparkSession):
     result_df_weekly = spark.sql(
         """
         select 
@@ -57,25 +62,40 @@ def run_weekly_query():
     result_df_weekly.show()
     result_df_weekly.printSchema()
 
-spark = init_spark_session()
-config = get_config(file_path='config.yml')
-print("config: ", config)
-df = read_data(spark_session=spark)
-df.show()
-df.printSchema()
 
-df.createOrReplaceTempView("source")
+def main():
+    spark = init_spark_session()
+    config = get_config(file_path='config.yml')
+    print("config: ", config)
+    source_df = read_data(config=config, spark_session=spark)
+    source_df.show()
+    source_df.printSchema()
 
-spark.sql(
-    """
-    SELECT 
-        date, 
-        TO_DATE(DATE_TRUNC('WEEK', date)) AS week_start_date,
-        DAY(date),
-        DAYOFMONTH(date),
-        DAYOFWEEK(date)
-    FROM source
-    """
-).show()
-# run_daily_query()
-# run_weekly_query()
+    source_df.createOrReplaceTempView("source")
+
+    stage_df = spark.sql(
+        """
+        SELECT 
+            -- date,
+            TO_DATE(DATE_TRUNC('WEEK', date)) AS week_start_date,
+            -- DAY(date),
+            -- DAYOFMONTH(date),
+            -- DAYOFWEEK(date),
+            concat_ws(',',
+                concat("location_key=", location_key),
+                concat("cancel_public_events=", cancel_public_events),
+                concat("restrictions_on_gatherings=", restrictions_on_gatherings)
+            ) as output,
+            sum(income_support)
+        FROM source
+        GROUP BY ROLLUP(week_start_date, location_key, cancel_public_events, restrictions_on_gatherings)
+        ORDER BY week_start_date, output
+        """
+    )
+
+    stage_df.show(truncate=False)
+
+    # run_daily_query()
+    # run_weekly_query()
+
+main()
