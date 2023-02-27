@@ -1,5 +1,8 @@
-creds:
-  connector: s3
+connection:
+  file_system: local
+  file_paths: ["oxford-government-response.csv"]
+  format: csv
+
 
 columns:
   - location_key
