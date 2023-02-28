@@ -10,16 +10,14 @@ columns:
   - cancel_public_events
   - restrictions_on_gatherings
   - public_transport_closing
-  - international_travel_controls
-date_column:
-  - date
+date_column: date
 aggregations:
-  - total_income_support
-    - sum(income_support)
-  - total_international_support
-    - sum(international_support)
-  - total_fiscal_measures
-    - sum(fiscal_measures)
+  - name: total_income_support
+    formula: sum(income_support)
+  - name: total_international_support
+    formula: sum(international_support)
+  - name: total_fiscal_measures
+    formula: sum(fiscal_measures)
 granularity:
   - daily
 no_of_dimensions: 3
