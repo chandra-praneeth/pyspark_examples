@@ -2,6 +2,7 @@ from pyspark.sql import SparkSession
 from data_reader.reader_factory import get_file_reader
 from data_reader.base_reader import BaseReader
 from yaml_reader import YamlReader
+import itertools
 
 
 def init_spark_session():
@@ -19,83 +20,96 @@ def read_data(config: dict, spark_session: SparkSession):
     # return spark_session.read.csv("oxford-government-response.csv", header=True)
 
 
-def prepare_select_clause():
-    pass
+# Getting combinations: https://stackoverflow.com/a/464882/4987448
+# https://docs.python.org/3/library/itertools.html#itertools.combinations
+def get_grouping_sets(config: dict) -> str:
+    columns: list = config.get('columns')
+    no_of_dimensions: int = config.get('no_of_dimensions')
+    grouping_sets: list = []
+    # Calculate nCr where n = no of columns, r = no of dimensions
+    for _r in range(no_of_dimensions+1):
+        combinations: list = list(itertools.combinations(columns, _r))
+        print("r: ", _r)
+        print("combinations: ", combinations)
+        combinations_modified: list = []
+        for _combination in combinations:
+            _comb: list = list(_combination)
+            _comb.append("date")
+            combinations_modified.append(
+                "(" + ",".join(_comb) + ")"
+            )
+
+        print("combinations_modified: ", combinations_modified)
+        grouping_sets.extend(combinations_modified)
+    print("grouping_sets: ", grouping_sets)
+    print("len(grouping_sets):", len(grouping_sets))
+    _grouping_sets: str = ",".join(grouping_sets)
+    print("_grouping_sets_joined", _grouping_sets)
+    return _grouping_sets
 
 
-def run_daily_query(spark: SparkSession):
-    result_df_daily = spark.sql(
-        """
-        select 
-            date,
-            location_key, 
-            school_closing, 
-            cancel_public_events,
-            sum(income_support) as total_income_support,
-            sum(international_support) as total_international_support,
-            sum(fiscal_measures) as total_fiscal_measures
-        from source
-        group by cube(date, location_key, school_closing, cancel_public_events)
-        order by location_key, school_closing, cancel_public_events
-        """
-    )
-    result_df_daily.show()
-    result_df_daily.printSchema()
+def prepare_select_clause(config: dict):
+    # Date column
+    date_col: str = config.get('date_column')
+    granularity: str = config.get('granularity')
+    if granularity == 'weekly':
+        date_col = f"TO_DATE(DATE_TRUNC('WEEK', {date_col}))"
+    print("date_col:", date_col)
 
+    # Metrics aggregation
+    aggregations: list[dict] = config.get('aggregations')
+    _agg: list = list(map(lambda agg: agg.get('formula') + ' AS ' + agg.get('name'), aggregations))
+    agg_cols: str = ','.join(_agg)
+    print("agg_cols", agg_cols)
 
-def run_weekly_query(spark: SparkSession):
-    result_df_weekly = spark.sql(
-        """
-        select 
-            date_trunc(date, 'week') as week,
-            location_key, 
-            school_closing, 
-            cancel_public_events,
-            sum(income_support) as total_income_support,
-            sum(international_support) as total_international_support,
-            sum(fiscal_measures) as total_fiscal_measures
-        from source
-        group by cube(week, location_key, school_closing, cancel_public_events)
-        order by week, location_key, school_closing, cancel_public_events
-        """
-    )
-    result_df_weekly.show()
-    result_df_weekly.printSchema()
+    # Dimensions concatenation
+    concat_cols: list = []
+    columns: list = config.get('columns', [])
+    for _col in columns:
+        _concat_col = f'CONCAT("{_col}=", {_col})'
+        concat_cols.append(_concat_col)
+
+    concat_cols_str: str = ",".join(concat_cols)
+    concat_cols_str = f"CONCAT_WS(',',{concat_cols_str}) AS output"
+    print("concat_cols_str: ", concat_cols_str)
+
+    # Clause preparation
+    select_clause: str = ",".join([date_col, concat_cols_str, agg_cols])
+    print("select clause: ", select_clause)
+    return select_clause
 
 
 def main():
     spark = init_spark_session()
     config = get_config(file_path='config.yml')
     print("config: ", config)
+    select_clause: str = prepare_select_clause(config)
+    grouping_sets: str = get_grouping_sets(config)
+    # exit(1)
     source_df = read_data(config=config, spark_session=spark)
     source_df.show()
     source_df.printSchema()
 
     source_df.createOrReplaceTempView("source")
 
-    stage_df = spark.sql(
-        """
-        SELECT 
-            -- date,
-            TO_DATE(DATE_TRUNC('WEEK', date)) AS week_start_date,
-            -- DAY(date),
-            -- DAYOFMONTH(date),
-            -- DAYOFWEEK(date),
-            concat_ws(',',
-                concat("location_key=", location_key),
-                concat("cancel_public_events=", cancel_public_events),
-                concat("restrictions_on_gatherings=", restrictions_on_gatherings)
-            ) as output,
-            sum(income_support)
-        FROM source
-        GROUP BY ROLLUP(week_start_date, location_key, cancel_public_events, restrictions_on_gatherings)
-        ORDER BY week_start_date, output
-        """
-    )
+    # https://spark.apache.org/docs/3.1.2/api/python/reference/api/pyspark.sql.functions.concat_ws.html
+    # https://spark.apache.org/docs/3.1.2/api/python/reference/api/pyspark.sql.functions.concat.html
 
-    stage_df.show(truncate=False)
+    stage_sql_query: str = f"""
+    SELECT 
+        {select_clause}
+    FROM source
+    GROUP BY GROUPING SETS({grouping_sets})
+    ORDER BY date, output
+    """
+    print("stage_sql_query:", stage_sql_query)
+
+    stage_df = spark.sql(stage_sql_query)
+
+    stage_df.show(n=100, truncate=False)
 
     # run_daily_query()
     # run_weekly_query()
+
 
 main()
