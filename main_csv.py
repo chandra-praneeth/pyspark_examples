@@ -72,7 +72,7 @@ def prepare_select_clause(config: dict):
     #   CONCAT("school_closing=", school_closing)
     # )
 
-    concat_cols_str = f"CONCAT_WS(',',{concat_cols_str}) AS output"
+    concat_cols_str = f"CONCAT('[', CONCAT_WS(',',{concat_cols_str}), ']') AS output"
     print("concat_cols_str: ", concat_cols_str)
 
     # Clause preparation
@@ -96,17 +96,37 @@ def main():
     source_df.createOrReplaceTempView("source")
 
     stage_sql_query: str = f"""
-    SELECT 
+    SELECT
         {select_clause}
     FROM source
     GROUP BY GROUPING SETS({grouping_sets})
     ORDER BY date, output
     """
+
+    # Sample Query
+    # stage_sql_query: str = """
+    # SELECT
+    #     TO_DATE(DATE_TRUNC('WEEK', date)) AS date,
+    #     location_key,
+    #     school_closing,
+    #     CONCAT("[",
+    #         CONCAT_WS(',',
+    #             CONCAT("location_key=", location_key),
+    #             CONCAT("school_closing=", school_closing)
+    #         ),
+    #     "]") AS output,
+    #     sum(income_support) AS total_income_support
+    # FROM source
+    # WHERE date = '2020-01-01'
+    # GROUP BY GROUPING SETS( (date), (location_key,date), (school_closing,date), (location_key,school_closing,date))
+    # ORDER BY date, output
+    # """
+
     print("stage_sql_query:", stage_sql_query)
 
     stage_df = spark.sql(stage_sql_query)
 
-    stage_df.show(n=100, truncate=False)
+    stage_df.show(truncate=False)
     file_reader_writer.write(stage_df)
 
 
