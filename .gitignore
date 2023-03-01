@@ -1,2 +1,5 @@
 env/
 .idea/
+.DS_Store
+output/*.crc
+output/_SUCCESS
