@@ -1,7 +1,7 @@
-from data_reader.base_reader import BaseReader
-from data_reader.local_file_reader import LocalFileReader
-from data_reader.s3_file_reader import S3FileReader
-from data_reader.bigquery_file_reader import BigQueryFileReader
+from data_reader_writer.base_reader_writer import BaseReader
+from data_reader_writer.local_file_reader_writer import LocalFileReader
+from data_reader_writer.s3_file_reader_writer import S3FileReader
+from data_reader_writer.bigquery_file_reader_writer import BigQueryFileReader
 from pyspark.sql import SparkSession
 
 

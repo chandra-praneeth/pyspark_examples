@@ -11,7 +11,7 @@
 # 1. URL is publicly accessible, what is the need for s3/bigquery connector?
 # 2. Any sample Bigquery table/s3 path which is publicly available for testing?
 
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, DataFrame
 
 
 class BaseReader:
@@ -24,4 +24,7 @@ class BaseReader:
         pass
 
     def read(self):
+        pass
+
+    def write(self, df: DataFrame):
         pass

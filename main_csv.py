@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
-from data_reader.reader_factory import get_file_reader
-from data_reader.base_reader import BaseReader
+from data_reader_writer.reader_writer_factory import get_file_reader
+from data_reader_writer.base_reader_writer import BaseReader
 from yaml_reader import YamlReader
 import itertools
 
@@ -53,7 +53,7 @@ def prepare_select_clause(config: dict):
     date_col: str = config.get('date_column')
     granularity: str = config.get('granularity')
     if granularity == 'weekly':
-        date_col = f"TO_DATE(DATE_TRUNC('WEEK', {date_col}))"
+        date_col = f"TO_DATE(DATE_TRUNC('WEEK', {date_col})) AS date"
     print("date_col:", date_col)
 
     # Metrics aggregation
@@ -86,7 +86,9 @@ def main():
     select_clause: str = prepare_select_clause(config)
     grouping_sets: str = get_grouping_sets(config)
     # exit(1)
-    source_df = read_data(config=config, spark_session=spark)
+    file_reader: BaseReader = get_file_reader(config=config, spark_session=spark_session)
+    source_df = file_reader.read()
+    # source_df = read_data(config=config, spark_session=spark)
     source_df.show()
     source_df.printSchema()
 
@@ -107,9 +109,6 @@ def main():
     stage_df = spark.sql(stage_sql_query)
 
     stage_df.show(n=100, truncate=False)
-
-    # run_daily_query()
-    # run_weekly_query()
 
 
 main()

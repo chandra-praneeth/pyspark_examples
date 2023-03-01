@@ -1,4 +1,4 @@
-from data_reader.base_reader import BaseReader
+from data_reader_writer.base_reader_writer import BaseReader
 
 
 class S3FileReader(BaseReader):

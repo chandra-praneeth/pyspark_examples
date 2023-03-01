@@ -1,7 +1,8 @@
 connection:
   file_system: local
-  file_paths: ["oxford-government-response.csv"]
-  format: csv
+  input_file_paths: ["oxford-government-response.csv"]
+  input_format: csv
+  output_dir_path: output
 
 
 columns:
@@ -18,8 +19,7 @@ aggregations:
     formula: sum(international_support)
   - name: total_fiscal_measures
     formula: sum(fiscal_measures)
-granularity:
-  - daily
+granularity: weekly
 no_of_dimensions: 3
 
 
