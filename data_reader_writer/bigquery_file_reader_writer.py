@@ -1,7 +1,7 @@
-from data_reader_writer.base_reader_writer import BaseReader
+from data_reader_writer.base_reader_writer import BaseReaderWriter
 
 
-class BigQueryFileReader(BaseReader):
+class BigQueryFileReaderWriter(BaseReaderWriter):
     def connect(self):
         pass
 

@@ -14,7 +14,7 @@
 from pyspark.sql import SparkSession, DataFrame
 
 
-class BaseReader:
+class BaseReaderWriter:
 
     def __init__(self, spark_session, config: dict):
         self.spark_session: SparkSession = spark_session

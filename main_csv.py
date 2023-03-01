@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from data_reader_writer.reader_writer_factory import get_file_reader
-from data_reader_writer.base_reader_writer import BaseReader
+from data_reader_writer.base_reader_writer import BaseReaderWriter
 from yaml_reader import YamlReader
 import itertools
 
@@ -12,12 +12,6 @@ def init_spark_session():
 def get_config(file_path: str):
     yml_reader = YamlReader(file_path=file_path)
     return yml_reader.get_conf()
-
-
-def read_data(config: dict, spark_session: SparkSession):
-    file_reader: BaseReader = get_file_reader(config=config, spark_session=spark_session)
-    return file_reader.read()
-    # return spark_session.read.csv("oxford-government-response.csv", header=True)
 
 
 # Getting combinations: https://stackoverflow.com/a/464882/4987448
@@ -63,6 +57,7 @@ def prepare_select_clause(config: dict):
     print("agg_cols", agg_cols)
 
     # Dimensions concatenation
+    # https://spark.apache.org/docs/3.1.2/api/python/reference/api/pyspark.sql.functions.concat.html
     concat_cols: list = []
     columns: list = config.get('columns', [])
     for _col in columns:
@@ -70,6 +65,13 @@ def prepare_select_clause(config: dict):
         concat_cols.append(_concat_col)
 
     concat_cols_str: str = ",".join(concat_cols)
+    # https://spark.apache.org/docs/3.1.2/api/python/reference/api/pyspark.sql.functions.concat_ws.html
+    # Sample:
+    # CONCAT_WS(',',
+    #   CONCAT("location_key=", location_key),
+    #   CONCAT("school_closing=", school_closing)
+    # )
+
     concat_cols_str = f"CONCAT_WS(',',{concat_cols_str}) AS output"
     print("concat_cols_str: ", concat_cols_str)
 
@@ -86,16 +88,12 @@ def main():
     select_clause: str = prepare_select_clause(config)
     grouping_sets: str = get_grouping_sets(config)
     # exit(1)
-    file_reader: BaseReader = get_file_reader(config=config, spark_session=spark_session)
-    source_df = file_reader.read()
-    # source_df = read_data(config=config, spark_session=spark)
+    file_reader_writer: BaseReaderWriter = get_file_reader(config=config, spark_session=spark)
+    source_df = file_reader_writer.read()
     source_df.show()
     source_df.printSchema()
 
     source_df.createOrReplaceTempView("source")
-
-    # https://spark.apache.org/docs/3.1.2/api/python/reference/api/pyspark.sql.functions.concat_ws.html
-    # https://spark.apache.org/docs/3.1.2/api/python/reference/api/pyspark.sql.functions.concat.html
 
     stage_sql_query: str = f"""
     SELECT 
@@ -109,6 +107,7 @@ def main():
     stage_df = spark.sql(stage_sql_query)
 
     stage_df.show(n=100, truncate=False)
+    file_reader_writer.write(stage_df)
 
 
 main()

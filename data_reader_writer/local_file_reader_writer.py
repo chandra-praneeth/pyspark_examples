@@ -1,12 +1,12 @@
 from pyspark.sql import DataFrame
 
-from data_reader_writer.base_reader_writer import BaseReader
+from data_reader_writer.base_reader_writer import BaseReaderWriter
 
 
-class LocalFileReader(BaseReader):
+class LocalFileReaderWriter(BaseReaderWriter):
 
     def read(self):
-        file_paths: str = self.config.get('connection').get('file_paths')
+        file_paths: str = self.config.get('connection').get('input_file_paths')
         return self.spark_session.read.csv(file_paths, header=True)
 
     def write(self, df: DataFrame):
