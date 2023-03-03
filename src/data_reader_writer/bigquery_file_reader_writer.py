@@ -1,4 +1,4 @@
-from src.data_reader_writer.base_reader_writer import BaseReaderWriter
+from data_reader_writer.base_reader_writer import BaseReaderWriter
 
 
 class BigQueryFileReaderWriter(BaseReaderWriter):
