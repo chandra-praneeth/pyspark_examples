@@ -12,10 +12,11 @@ PySpark examples
 
 ### Run
   * In project root directory run `python3 src/main_csv.py`
-  * To run unit tests, run command `pytest`
+  * Unit tests, run command `pytest`
 
 #### References
   * Virtual env: https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/
   * PySpark installation: https://spark.apache.org/docs/latest/api/python/getting_started/install.html
   * Getting started with PySpark: https://spark.apache.org/docs/latest/api/python/getting_started/quickstart_df.html
   * Java download: https://www.java.com/en/
+  * PyTest: https://docs.pytest.org/en/7.1.x/explanation/goodpractices.html
