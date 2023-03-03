@@ -1,3 +1,4 @@
-pyspark[sql]
-urllib3
-pyyaml
+pyspark[sql]==3.3.2
+urllib3==1.26.14
+pyyaml==6.0
+pytest==7.2.1
