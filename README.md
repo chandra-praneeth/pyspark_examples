@@ -1,6 +1,6 @@
 # pyspark_examples
 PySpark examples
-#### Steps
+#### Setup
 * Create and initialise virtual environment(venv) 
   * Install venv package: `python3 -m pip install --user virtualenv`
   * Create a folder `env` using `mkdir env`
@@ -9,6 +9,10 @@ PySpark examples
 
 * Install dependencies from `requirements.txt` file
   * `python3 -m pip install -r requirements.txt`
+
+### Run
+  * In project root directory run `python3 src/main_csv.py`
+  * To run unit tests, run command `pytest`
 
 #### References
   * Virtual env: https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/
