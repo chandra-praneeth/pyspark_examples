@@ -19,7 +19,7 @@ aggregations:
 #    formula: sum(international_support)
 #  - name: total_fiscal_measures
 #    formula: sum(fiscal_measures)
-granularity: weekly
+granularity: daily
 no_of_dimensions: 2
 
 
