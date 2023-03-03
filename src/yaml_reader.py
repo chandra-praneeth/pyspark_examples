@@ -23,7 +23,6 @@ class YamlReader:
 
     def __init__(self, file_path: str):
         self.config = yaml.safe_load(Path(file_path).read_text())
-        print("self.config")
 
     def get_conf(self):
         return self.config

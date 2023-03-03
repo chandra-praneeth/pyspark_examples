@@ -1,3 +1,5 @@
+import logging
+
 from pyspark.sql import SparkSession
 
 from data_reader_writer.base_reader_writer import BaseReaderWriter
@@ -5,6 +7,8 @@ from data_reader_writer.reader_writer_factory import get_file_reader
 from sql_clause_helper import get_date_column, get_aggregated_metrics, \
     get_concatenated_column_output, get_grouping_sets
 from yaml_reader import YamlReader
+
+logging.getLogger().setLevel(logging.INFO)
 
 
 def init_spark_session():
@@ -22,21 +26,21 @@ def prepare_select_clause(config: dict):
         date_col=config.get('date_column'),
         granularity=config.get('granularity')
     )
-    print("date_col:", date_col)
+    logging.info("date_col: " + date_col)
 
     # Metrics aggregation
     agg_cols: str = get_aggregated_metrics(
         config.get('aggregations')
     )
-    print("agg_cols", agg_cols)
+    logging.info("agg_cols: " + agg_cols)
 
     # Dimensions concatenation
     concat_cols_str = get_concatenated_column_output(config.get('columns'))
-    print("concat_cols_str: ", concat_cols_str)
+    logging.info("concat_cols_str: " + concat_cols_str)
 
     # Clause preparation
     select_clause: str = ",".join([date_col, concat_cols_str, agg_cols])
-    print("select clause: ", select_clause)
+    logging.info("select clause: " + select_clause)
     return select_clause
 
 
@@ -44,7 +48,7 @@ def main():
     # Spark init and read config
     spark = init_spark_session()
     config = get_config(file_path='src/config.yml')
-    print("config: ", config)
+    logging.info("config: " + str(config))
 
     # Prepare SparkSQL statements
     select_clause: str = prepare_select_clause(config)
@@ -87,7 +91,7 @@ def main():
     # GROUP BY GROUPING SETS( (date), (location_key,date), (school_closing,date), (location_key,school_closing,date))
     # ORDER BY date, output
     # """
-    print("stage_sql_query:", stage_sql_query)
+    logging.info("stage_sql_query: " + stage_sql_query)
 
     stage_df = spark.sql(stage_sql_query)
     stage_df.show(truncate=False)

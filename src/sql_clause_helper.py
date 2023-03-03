@@ -1,4 +1,7 @@
 import itertools
+import logging
+
+logging.getLogger().setLevel(logging.INFO)
 
 
 def get_date_column(date_col: str, granularity: str) -> str:
@@ -46,8 +49,8 @@ def get_grouping_sets(columns: list, no_of_dimensions: int ) -> str:
     # Calculate nCr where n = no of columns, r = no of dimensions
     for _r in range(no_of_dimensions+1):
         combinations: list = list(itertools.combinations(columns, _r))
-        print("r: ", _r)
-        print("combinations: ", combinations)
+        logging.info("r: " + str(_r))
+        logging.info("combinations: " + str(combinations))
         combinations_modified: list = []
         for _combination in combinations:
             _comb: list = list(_combination)
@@ -56,12 +59,12 @@ def get_grouping_sets(columns: list, no_of_dimensions: int ) -> str:
                 "(" + ",".join(_comb) + ")"
             )
 
-        print("combinations_modified: ", combinations_modified)
+        logging.info("combinations_modified: " + str(combinations_modified))
         grouping_sets.extend(combinations_modified)
-    print("grouping_sets: ", grouping_sets)
-    print("len(grouping_sets):", len(grouping_sets))
+    logging.info("grouping_sets: " + str(grouping_sets))
+    logging.info("len(grouping_sets): " + str(len(grouping_sets)))
     _grouping_sets: str = ",".join(grouping_sets)
-    print("_grouping_sets_joined", _grouping_sets)
+    logging.info("_grouping_sets_joined: " + _grouping_sets)
     return _grouping_sets
 
 
