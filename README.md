@@ -12,6 +12,7 @@ PySpark examples
 
 ### Run
   * In project root directory run `python3 src/main_csv.py`
+    * Config file is present at: `src/config.yml`
   * Unit tests, run command `pytest`
 
 #### References
